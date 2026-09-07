@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Number systems: binary, denary and hexadecimal</title>
+<style>
+:root{
+  --paper:#ffffff; --ink:#1f2933; --ink-2:#57616e; --ink-3:#8b95a3;
+  --rule:#dde1e7; --rule-2:#c3cad3; --wash:#f6f7f9;
+  --bin:#0e7c6b; --bin-wash:#e4f2ef; --bin-deep:#0a5449;
+  --hex:#6b46c1; --hex-wash:#eee9fa; --hex-deep:#4a2f8f;
+  --den:#1d6fa5; --den-wash:#e6f0f7; --den-deep:#134b71;
+  --good:#2c7a4b; --good-wash:#e6f3ea;
+  --bad:#b3352f; --bad-wash:#fbeae9;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.65;-webkit-text-size-adjust:100%}
+.rail{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--rule)}
+.rail-in{max-width:820px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pips{display:flex;gap:4px;flex:1;min-width:180px}
+.pip{height:5px;flex:1;background:var(--rule);border-radius:3px}
+.pip.done{background:var(--ink-2)}
+.pip.now{background:var(--bin)}
+.railtxt{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.score{font-family:var(--mono);font-size:13px;color:var(--ink-2);white-space:nowrap}
+main{max-width:820px;margin:0 auto;padding:28px 20px 80px}
+h1{font-family:Georgia,"Times New Roman",serif;font-weight:normal;font-size:34px;line-height:1.2;margin:0 0 6px;letter-spacing:-0.01em}
+h2{font-family:Georgia,"Times New Roman",serif;font-weight:normal;font-size:27px;line-height:1.25;margin:0 0 4px;letter-spacing:-0.01em}
+h3{font-size:16px;font-weight:600;margin:26px 0 8px}
+p{margin:0 0 14px;max-width:66ch}
+.stage-no{font-family:var(--mono);font-size:13px;color:var(--ink-3);margin:0 0 10px}
+.lead{color:var(--ink-2);max-width:64ch}
+.stage{display:none}
+.stage.on{display:block}
+.panel{border:1px solid var(--rule);border-radius:10px;padding:18px 20px;margin:20px 0}
+.panel.tight{padding:14px 16px}
+.wash{background:var(--wash)}
+.note{border-left:3px solid var(--rule-2);padding:2px 0 2px 14px;margin:16px 0;color:var(--ink-2);font-size:16px}
+.cols{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0 14px}
+.col{flex:1 1 0;min-width:46px;text-align:center}
+.col .pv{font-family:var(--mono);font-size:12px;color:var(--ink-3);padding-bottom:3px}
+.cell{font-family:var(--mono);font-size:22px;border:1px solid var(--rule-2);border-radius:6px;padding:9px 0;background:var(--paper);width:100%;cursor:pointer;color:var(--ink);transition:background .12s,border-color .12s}
+.cell:hover{border-color:var(--ink-3)}
+.cell.set{background:var(--bin-wash);border-color:var(--bin);color:var(--bin-deep);font-weight:600}
+.cell.static{cursor:default}
+.readout{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.rd{flex:1 1 150px;border:1px solid var(--rule);border-radius:8px;padding:10px 12px}
+.rd .lbl{font-size:12px;color:var(--ink-3);margin-bottom:2px}
+.rd .val{font-family:var(--mono);font-size:24px;line-height:1.2}
+.rd.b .val{color:var(--bin-deep)} .rd.d .val{color:var(--den-deep)} .rd.h .val{color:var(--hex-deep)}
+.work{font-family:var(--mono);font-size:14px;color:var(--ink-2);margin:8px 0 0;word-break:break-word}
+button{font-family:inherit;font-size:15px;padding:8px 15px;border:1px solid var(--rule-2);background:var(--paper);color:var(--ink);border-radius:7px;cursor:pointer;line-height:1.3}
+button:hover{border-color:var(--ink-3);background:var(--wash)}
+button:focus-visible,input:focus-visible,.cell:focus-visible{outline:2px solid var(--den);outline-offset:2px}
+button.go{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:500}
+button.go:hover{background:#000}
+button:disabled{opacity:.4;cursor:not-allowed}
+input[type=text]{font-family:var(--mono);font-size:17px;padding:8px 11px;border:1px solid var(--rule-2);border-radius:7px;width:170px;background:var(--paper);color:var(--ink)}
+input[type=range]{width:100%}
+.qbox{border:1px solid var(--rule);border-radius:10px;padding:16px 18px;margin:14px 0}
+.qhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.qtag{font-size:12px;color:var(--ink-3);font-family:var(--mono)}
+.qtext{font-size:18px;margin:0 0 12px}
+.qrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fb{font-size:15px;margin:10px 0 0;line-height:1.6}
+.fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
+.err{font-size:14px;color:var(--bad);margin:8px 0 0;min-height:0}
+.dots{display:flex;gap:5px;margin-top:10px;align-items:center}
+.dot{width:11px;height:11px;border-radius:50%;border:1px solid var(--rule-2)}
+.dot.hit{background:var(--good);border-color:var(--good)}
+.dotlbl{font-size:13px;color:var(--ink-3);margin-left:6px}
+.mcq{display:grid;gap:8px;margin:10px 0}
+.mcq button{text-align:left;padding:11px 14px;font-family:var(--mono);font-size:16px}
+.mcq button.picked-ok{background:var(--good-wash);border-color:var(--good);color:var(--good)}
+.mcq button.picked-no{background:var(--bad-wash);border-color:var(--bad);color:var(--bad)}
+table{border-collapse:collapse;width:100%;font-size:15px;margin:12px 0}
+th,td{border:1px solid var(--rule);padding:6px 9px;text-align:left}
+th{background:var(--wash);font-weight:600;font-size:13px;color:var(--ink-2)}
+td.m,th.m{font-family:var(--mono)}
+.hexref{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;margin:14px 0}
+.hr-c{border:1px solid var(--rule);border-radius:7px;padding:7px 4px;text-align:center;font-family:var(--mono);font-size:13px;line-height:1.45}
+.hr-c b{display:block;font-size:19px;color:var(--hex-deep);font-weight:600}
+.hr-c span{color:var(--ink-3);font-size:12px}
+.nib{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0}
+.nibb{flex:1 1 200px;border:1px solid var(--rule);border-radius:9px;padding:12px}
+.nibb .nt{font-size:12px;color:var(--ink-3);margin-bottom:6px}
+.nibb .nv{font-family:var(--mono);font-size:26px;color:var(--bin-deep)}
+.nibb .na{font-family:var(--mono);font-size:14px;color:var(--ink-2);margin-top:6px;line-height:1.6}
+.steps{list-style:none;margin:12px 0 0;padding:0;counter-reset:st}
+.steps li{counter-increment:st;position:relative;padding:9px 0 9px 34px;font-size:16px;border-top:1px solid var(--rule);line-height:1.6}
+.steps li:first-child{border-top:none}
+.steps li::before{content:counter(st);position:absolute;left:0;top:9px;width:22px;height:22px;border-radius:50%;background:var(--wash);border:1px solid var(--rule-2);font-family:var(--mono);font-size:12px;line-height:21px;text-align:center;color:var(--ink-2)}
+.steps li.last{font-weight:600}
+.steps code{font-family:var(--mono);font-size:15px;color:var(--bin-deep);background:var(--bin-wash);padding:1px 6px;border-radius:4px}
+.steps code.h{color:var(--hex-deep);background:var(--hex-wash)}
+.steps code.d{color:var(--den-deep);background:var(--den-wash)}
+.target{font-family:var(--mono);font-size:22px;color:var(--den-deep)}
+.wk{display:block;white-space:pre-line;font-family:var(--mono);font-size:14px;line-height:1.65;color:var(--ink-2);margin-top:9px;padding-top:9px;border-top:1px solid var(--rule);word-break:break-word}
+.swatch{height:74px;border-radius:9px;border:1px solid var(--rule-2);margin:12px 0}
+.slider-row{display:flex;align-items:center;gap:12px;margin:7px 0}
+.slider-row label{font-family:var(--mono);font-size:14px;width:22px;color:var(--ink-2)}
+.slider-row .v{font-family:var(--mono);font-size:14px;width:70px;text-align:right;color:var(--ink-2)}
+.strcmp{font-family:var(--mono);font-size:15px;letter-spacing:.04em;word-break:break-all;background:var(--wash);border:1px solid var(--rule);border-radius:7px;padding:10px 12px;margin:6px 0}
+.uses{display:grid;gap:10px;margin:14px 0}
+.use{border:1px solid var(--rule);border-radius:9px;padding:13px 15px}
+.use h4{margin:0 0 4px;font-size:16px;font-weight:600}
+.use p{margin:0;font-size:15px;color:var(--ink-2);max-width:none}
+.use .ex{font-family:var(--mono);font-size:14px;color:var(--hex-deep);background:var(--hex-wash);display:inline-block;padding:2px 7px;border-radius:5px;margin-top:7px;word-break:break-all}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:32px;padding-top:18px;border-top:1px solid var(--rule);flex-wrap:wrap}
+.key{background:var(--wash);border:1px solid var(--rule);border-radius:10px;padding:14px 16px;margin:18px 0}
+.key dl{margin:0;font-size:15px}
+.key dt{font-weight:600;margin-top:8px}
+.key dt:first-child{margin-top:0}
+.key dd{margin:0 0 0 0;color:var(--ink-2)}
+.code{font-family:var(--mono);font-size:30px;letter-spacing:.12em;color:var(--hex-deep);background:var(--hex-wash);border:1px solid var(--hex);border-radius:9px;padding:14px 18px;display:inline-block;margin:10px 0}
+.hide{display:none}
+@media (max-width:560px){
+  body{font-size:16px}
+  h1{font-size:27px} h2{font-size:22px}
+  .col{min-width:38px} .cell{font-size:18px;padding:7px 0} .col .pv{font-size:11px}
+  main{padding:20px 14px 70px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="rail">
+  <div class="rail-in">
+    <div class="pips" id="pips" aria-hidden="true"></div>
+    <div class="railtxt" id="railtxt">Stage 1 of 10</div>
+    <div class="score" id="scoretxt">0 correct</div>
+  </div>
+</div>
+
+<main>
+
+<!-- 1 -->
+<section class="stage on" id="s0">
+  <p class="stage-no">Stage 1 of 10</p>
+  <h1>Why does a computer need three different number systems?</h1>
+  <p class="lead">A computer only stores 1s and 0s. People are not good at reading 1s and 0s. Hexadecimal is the compromise that keeps both sides happy. By the end of this you will be able to convert between all three, and explain why hexadecimal exists at all.</p>
+
+  <div class="panel">
+    <h3 style="margin-top:0">What you will be able to do</h3>
+    <table>
+      <tr><td>Convert binary to denary, and denary to binary</td></tr>
+      <tr><td>Convert binary to hexadecimal, and hexadecimal to binary</td></tr>
+      <tr><td>Convert denary to hexadecimal, and hexadecimal to denary</td></tr>
+      <tr><td>Explain why hexadecimal is easier for people to use than binary</td></tr>
+      <tr><td>Name places in computer science where hexadecimal is used</td></tr>
+    </table>
+  </div>
+
+  <div class="key">
+    <h3 style="margin-top:0">Key words</h3>
+    <dl>
+      <dt>Base</dt><dd>How many different digits a number system uses. Denary uses 10, binary uses 2, hexadecimal uses 16.</dd>
+      <dt>Bit</dt><dd>A single 1 or 0.</dd>
+      <dt>Nibble</dt><dd>A group of 4 bits.</dd>
+      <dt>Byte</dt><dd>A group of 8 bits.</dd>
+      <dt>Place value</dt><dd>What each column in a number is worth.</dd>
+    </dl>
+  </div>
+
+  <div class="panel tight">
+    <p style="margin:0 0 8px">Type your name. It is used to make your completion code at the end.</p>
+    <input type="text" id="uname" placeholder="Your name" style="width:230px" autocomplete="off">
+  </div>
+
+  <div class="nav"><span></span><button class="go" onclick="go(1)">Start</button></div>
+</section>
+
+<!-- 2 -->
+<section class="stage" id="s1">
+  <p class="stage-no">Stage 2 of 10</p>
+  <h2>Place value: the idea behind every number system</h2>
+  <p>You already use place value every day. In denary, each column is worth ten times the one to its right. Change the digits below and watch the columns do the work.</p>
+
+  <div class="panel">
+    <div class="cols" id="dencols"></div>
+    <div class="qrow" style="margin-bottom:10px">
+      <button onclick="denNudge(-1)">Lower a digit</button>
+      <button onclick="denNudge(1)">Raise a digit</button>
+      <button onclick="denRand()">Random number</button>
+    </div>
+    <div class="readout"><div class="rd d"><div class="lbl">Value</div><div class="val" id="denval">0</div></div></div>
+    <p class="work" id="denwork">All columns are zero.</p>
+  </div>
+
+  <p>Binary works the same way, but each column is worth <b>two</b> times the one to its right, and the only digits allowed are 0 and 1. Hexadecimal columns are worth <b>sixteen</b> times the one to the right, and it needs sixteen different digits.</p>
+
+  <div class="note">The base tells you two things: how many digits are allowed, and what each column is multiplied by.</div>
+
+  <table>
+    <tr><th>System</th><th>Base</th><th>Digits allowed</th><th class="m">Column values</th></tr>
+    <tr><td>Denary</td><td>10</td><td class="m">0 to 9</td><td class="m">1000 100 10 1</td></tr>
+    <tr><td>Binary</td><td>2</td><td class="m">0 and 1</td><td class="m">8 4 2 1</td></tr>
+    <tr><td>Hexadecimal</td><td>16</td><td class="m">0 to 9, A to F</td><td class="m">4096 256 16 1</td></tr>
+  </table>
+
+  <div class="nav"><button onclick="go(0)">Back</button><button class="go" onclick="go(2)">Next</button></div>
+</section>
+
+<!-- 3 -->
+<section class="stage" id="s2">
+  <p class="stage-no">Stage 3 of 10</p>
+  <h2>Binary to denary</h2>
+  <p>An 8-bit binary number has eight columns. Click a bit to switch it on. Add up the place values of every column that holds a 1.</p>
+
+  <div class="panel">
+    <div class="cols" id="bitcols"></div>
+    <div class="readout">
+      <div class="rd b"><div class="lbl">Binary</div><div class="val" id="obin">0000 0000</div></div>
+      <div class="rd d"><div class="lbl">Denary</div><div class="val" id="oden">0</div></div>
+      <div class="rd h"><div class="lbl">Hexadecimal</div><div class="val" id="ohex">00</div></div>
+    </div>
+    <p class="work" id="bitwork">No bits are switched on, so the value is 0.</p>
+    <div class="qrow"><button onclick="setBits(0)">Clear</button><button onclick="setBits(255)">All on</button><button onclick="setBits(Math.floor(Math.random()*256))">Random</button></div>
+  </div>
+
+  <div class="note">The largest value 8 bits can hold is 255, because 128 + 64 + 32 + 16 + 8 + 4 + 2 + 1 = 255. That is 256 different values in total, counting zero.</div>
+
+  <div id="p_b2d"></div>
+
+  <div class="nav"><button onclick="go(1)">Back</button><button class="go" onclick="go(3)">Next</button></div>
+</section>
+
+<!-- 4 -->
+<section class="stage" id="s3">
+  <p class="stage-no">Stage 4 of 10</p>
+  <h2>Denary to binary</h2>
+  <p>Work from the left. Ask: does 128 fit into my number? If it does, write 1 and subtract it. If it does not, write 0. Move to the next column and repeat.</p>
+
+  <div class="panel">
+    <div class="qrow" style="margin-bottom:12px">
+      <span style="font-size:15px;color:var(--ink-2)">Convert</span>
+      <span class="score" style="font-size:22px;color:var(--den-deep)" id="d2b_target">156</span>
+      <button onclick="d2bNew()">New number</button>
+      <button onclick="d2bStep()" id="d2b_step">Next step</button>
+      <button onclick="d2bReset()">Restart</button>
+    </div>
+    <div class="cols" id="d2bcols"></div>
+    <p class="work" id="d2bwork">Press "Next step" to work through it one column at a time.</p>
+  </div>
+
+  <div id="p_d2b"></div>
+
+  <div class="nav"><button onclick="go(2)">Back</button><button class="go" onclick="go(4)">Next</button></div>
+</section>
+
+<!-- 5 -->
+<section class="stage" id="s4">
+  <p class="stage-no">Stage 5 of 10</p>
+  <h2>Meet hexadecimal</h2>
+  <p>Hexadecimal is base 16, so it needs sixteen digits. We run out of symbols after 9, so the letters A to F are used for the values ten to fifteen.</p>
+
+  <div class="hexref" id="hexref"></div>
+
+  <p>Notice what fits perfectly: four bits can hold sixteen different values, from 0000 to 1111. Hexadecimal has exactly sixteen digits. So <b>one hexadecimal digit represents exactly one nibble</b>. That is the whole trick, and it is why base 16 was chosen rather than, say, base 10.</p>
+
+  <div class="note">4 bits = 1 nibble = 1 hexadecimal digit. 8 bits = 1 byte = 2 hexadecimal digits.</div>
+
+  <div id="p_hexref"></div>
+
+  <div class="nav"><button onclick="go(3)">Back</button><button class="go" onclick="go(5)">Next</button></div>
+</section>
+
+<!-- 6 -->
+<section class="stage" id="s5">
+  <p class="stage-no">Stage 6 of 10</p>
+  <h2>Binary to hexadecimal, and back</h2>
+  <p>Split the byte into two nibbles. Each nibble is only four bits long, so each one has its own place values that start again at 8, 4, 2, 1. Convert each nibble on its own, then join the two digits together.</p>
+
+  <div class="panel">
+    <div class="nib">
+      <div class="nibb">
+        <div class="nt">Left nibble</div>
+        <div class="cols" id="nibL"></div>
+        <div class="na" id="nla"></div>
+      </div>
+      <div class="nibb">
+        <div class="nt">Right nibble</div>
+        <div class="cols" id="nibR"></div>
+        <div class="na" id="nra"></div>
+      </div>
+    </div>
+    <div class="readout">
+      <div class="rd b"><div class="lbl">Binary</div><div class="val" id="nbin">0000 0000</div></div>
+      <div class="rd h"><div class="lbl">Hexadecimal</div><div class="val" id="nhex">00</div></div>
+    </div>
+    <div class="qrow"><button onclick="setNib(Math.floor(Math.random()*256))">Random byte</button><button onclick="setNib(0)">Clear</button></div>
+  </div>
+
+  <div class="note">Both nibbles use the columns 8, 4, 2, 1. The left nibble does not carry on from 128, 64, 32, 16. Each nibble is a fresh, small number from 0 to 15, and that is exactly why hexadecimal is quick to work with.</div>
+
+  <h3>Worked example: binary to hexadecimal</h3>
+  <p>Step through a full conversion, one line at a time. Every line stays on screen. Do two or three of these, then try to predict each step before you press the button.</p>
+  <div id="w_b2h"></div>
+
+  <div id="p_b2h"></div>
+
+  <h3>Worked example: hexadecimal to binary</h3>
+  <p>Going the other way is the same method in reverse. Each hexadecimal digit becomes exactly four bits.</p>
+  <div id="w_h2b"></div>
+
+  <div id="p_h2b"></div>
+
+  <div class="nav"><button onclick="go(4)">Back</button><button class="go" onclick="go(6)">Next</button></div>
+</section>
+
+<!-- 7 -->
+<section class="stage" id="s6">
+  <p class="stage-no">Stage 7 of 10</p>
+  <h2>Denary and hexadecimal</h2>
+  <p>You can go straight between denary and hexadecimal, or you can hop through binary. Both are accepted in the exam as long as your working is clear.</p>
+
+  <div class="panel wash">
+    <h3 style="margin-top:0">Route 1: through binary</h3>
+    <p style="margin-bottom:6px">Denary 214 &rarr; binary 1101 0110 &rarr; nibbles 1101 and 0110 &rarr; 13 and 6 &rarr; <b>D6</b></p>
+    <h3>Route 2: divide by 16</h3>
+    <p style="margin-bottom:0">214 &divide; 16 = 13 remainder 6. The 13 becomes D, the remainder 6 stays 6, giving <b>D6</b>. To go the other way: D6 means (13 &times; 16) + 6 = 208 + 6 = <b>214</b>.</p>
+  </div>
+
+  <h3>Worked example: denary to hexadecimal</h3>
+  <p>This walkthrough uses the divide by 16 route, and then checks the answer using the binary route so you can see they agree.</p>
+  <div id="w_d2h"></div>
+
+  <div id="p_d2h"></div>
+
+  <h3>Worked example: hexadecimal to denary</h3>
+  <p>A two-digit hexadecimal number has only two columns: the 16s column and the 1s column.</p>
+  <div id="w_h2d"></div>
+
+  <div id="p_h2d"></div>
+
+  <div class="nav"><button onclick="go(5)">Back</button><button class="go" onclick="go(7)">Next</button></div>
+</section>
+
+<!-- 8 -->
+<section class="stage" id="s7">
+  <p class="stage-no">Stage 8 of 10</p>
+  <h2>Why bother with hexadecimal?</h2>
+  <p>Hexadecimal does not let a computer do anything new. The machine still stores binary. Hexadecimal exists entirely for the benefit of the people who have to read, write and check that binary.</p>
+
+  <h3>Reason one: it is much shorter</h3>
+  <p>The same value, written three ways. Move the slider to change the number of bits.</p>
+  <div class="panel">
+    <div class="slider-row"><label for="bitlen">Bits</label><input type="range" id="bitlen" min="8" max="64" step="8" value="32"><span class="v" id="bitlenv">32</span></div>
+    <div class="strcmp" id="cmpbin"></div>
+    <div class="strcmp" id="cmphex"></div>
+    <p class="work" id="cmpwork"></p>
+  </div>
+  <div class="note">Hexadecimal is always a quarter of the length of the same binary number, because each digit replaces four bits.</div>
+
+  <h3>Reason two: people make fewer mistakes with it</h3>
+  <p>Two values are shown below. Decide whether they are the same. Try the binary pair first, then the hexadecimal pair.</p>
+  <div class="panel" id="spotbox"></div>
+
+  <h3>Reason three: it is easy to convert, both ways</h3>
+  <p>Converting binary to hexadecimal is quick and needs no calculation beyond counting to fifteen. Converting binary to denary is far more work, and denary does not line up neatly with the bits underneath it. Hexadecimal gives you a short number that you can turn straight back into the exact bit pattern.</p>
+
+  <div id="p_why"></div>
+
+  <div class="nav"><button onclick="go(6)">Back</button><button class="go" onclick="go(8)">Next</button></div>
+</section>
+
+<!-- 9 -->
+<section class="stage" id="s8">
+  <p class="stage-no">Stage 9 of 10</p>
+  <h2>Where hexadecimal is actually used</h2>
+  <p>You need to be able to name areas of computer science that use hexadecimal. These are the ones the syllabus expects.</p>
+
+  <div class="uses">
+    <div class="use">
+      <h4>Colour codes in HTML and CSS</h4>
+      <p>Every colour on a web page is three values: red, green and blue, each stored in one byte. Two hexadecimal digits per colour gives a six-digit code.</p>
+      <div class="ex" id="colhex">#3C6E71</div>
+    </div>
+    <div class="panel">
+      <div class="swatch" id="swatch"></div>
+      <div class="slider-row"><label for="cr">R</label><input type="range" id="cr" min="0" max="255" value="60"><span class="v" id="crv">60 = 3C</span></div>
+      <div class="slider-row"><label for="cg">G</label><input type="range" id="cg" min="0" max="255" value="110"><span class="v" id="cgv">110 = 6E</span></div>
+      <div class="slider-row"><label for="cb">B</label><input type="range" id="cb" min="0" max="255" value="113"><span class="v" id="cbv">113 = 71</span></div>
+      <p class="work" id="colwork"></p>
+    </div>
+    <div class="use">
+      <h4>MAC addresses</h4>
+      <p>The unique address burned into a network interface card. It is 48 bits long, shown as six pairs of hexadecimal digits. Written in binary it would be 48 characters long.</p>
+      <div class="ex">00-1A-2B-3C-4D-5E</div>
+    </div>
+    <div class="use">
+      <h4>IP addresses (IPv6)</h4>
+      <p>IPv6 addresses are 128 bits. They are written as eight groups of four hexadecimal digits, which keeps them just about readable.</p>
+      <div class="ex">2001:0DB8:85A3:0000:0000:8A2E:0370:7334</div>
+    </div>
+    <div class="use">
+      <h4>Memory addresses and memory dumps</h4>
+      <p>When a programmer inspects the contents of memory, the addresses and the stored values are both shown in hexadecimal so that a whole screen of memory fits on the display and can be checked by eye.</p>
+      <div class="ex">004A2F10  4D 5A 90 00 03 00 00 00</div>
+    </div>
+    <div class="use">
+      <h4>Assembly language and machine code</h4>
+      <p>Instructions and operands are written in hexadecimal when debugging low-level code, because it maps directly onto the bit pattern the processor receives.</p>
+      <div class="ex">B8 04 00 CD 21</div>
+    </div>
+    <div class="use">
+      <h4>Error codes and debugging</h4>
+      <p>Operating systems report faults as hexadecimal codes. A short code is easier to read out, write down and search for than a long run of bits.</p>
+      <div class="ex">0x0000007B</div>
+    </div>
+    <div class="use">
+      <h4>ASCII and Unicode character codes</h4>
+      <p>Character sets list their codes in hexadecimal. Capital A is 41 in hexadecimal, which is 65 in denary and 0100 0001 in binary.</p>
+      <div class="ex">U+0041</div>
+    </div>
+    <div class="use">
+      <h4>URLs</h4>
+      <p>Characters that are not allowed in a web address are replaced by a percent sign followed by the hexadecimal code for that character. A space becomes %20.</p>
+      <div class="ex">search?q=data%20representation</div>
+    </div>
+  </div>
+
+  <div id="p_uses"></div>
+
+  <div class="nav"><button onclick="go(7)">Back</button><button class="go" onclick="go(9)">Next</button></div>
+</section>
+
+<!-- 10 -->
+<section class="stage" id="s9">
+  <p class="stage-no">Stage 10 of 10</p>
+  <h2>Final check</h2>
+  <p>Five questions in the style of the exam. Read each one carefully. The wrong answers are the mistakes people usually make, so the feedback will tell you exactly where you went wrong.</p>
+
+  <div id="p_final"></div>
+
+  <div class="panel" id="codebox">
+    <h3 style="margin-top:0">Your completion code</h3>
+    <p id="codemsg">Answer the questions above to generate your code.</p>
+    <div class="code hide" id="codeout">------</div>
+    <p style="font-size:15px;color:var(--ink-2);margin-bottom:0">Copy this code into the top of your worksheet.</p>
+  </div>
+
+  <div class="nav"><button onclick="go(8)">Back</button><button onclick="window.print()">Print this page</button></div>
+</section>
+
+</main>
+
+<script>
+var STAGES=10, cur=0, score=0, attempted=0;
+
+var pips=document.getElementById('pips');
+for(var i=0;i<STAGES;i++){var d=document.createElement('div');d.className='pip';pips.appendChild(d);}
+
+function go(n){
+  document.getElementById('s'+cur).classList.remove('on');
+  cur=n;
+  document.getElementById('s'+cur).classList.add('on');
+  Array.prototype.forEach.call(pips.children,function(p,i){
+    p.className='pip'+(i<cur?' done':i===cur?' now':'');
+  });
+  document.getElementById('railtxt').textContent='Stage '+(cur+1)+' of '+STAGES;
+  window.scrollTo(0,0);
+}
+function bump(ok){attempted++;if(ok)score++;document.getElementById('scoretxt').textContent=score+' correct';updateCode();}
+
+function toBin(v,n){return v.toString(2).padStart(n||8,'0');}
+function group4(s){return s.replace(/(.{4})(?=.)/g,'$1 ');}
+function toHex(v,n){return v.toString(16).toUpperCase().padStart(n||2,'0');}
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+
+/* ---------- stage 2: denary place value ---------- */
+var dpv=[1000,100,10,1], dd=[0,2,4,7];
+var dcol=document.getElementById('dencols');
+dpv.forEach(function(p,i){
+  var w=document.createElement('div');w.className='col';
+  w.innerHTML='<div class="pv">'+p+'</div>';
+  var b=document.createElement('button');b.className='cell';b.textContent=dd[i];
+  b.onclick=function(){dd[i]=(dd[i]+1)%10;drawDen();};
+  w.appendChild(b);dcol.appendChild(w);
+});
+function drawDen(){
+  var v=0,parts=[];
+  dd.forEach(function(d,i){v+=d*dpv[i];if(d)parts.push(d+' \u00D7 '+dpv[i]+' = '+(d*dpv[i]));});
+  Array.prototype.forEach.call(dcol.children,function(c,i){c.lastChild.textContent=dd[i];});
+  document.getElementById('denval').textContent=v;
+  document.getElementById('denwork').textContent=parts.length?parts.join('   ')+'   total '+v:'All columns are zero.';
+}
+function denNudge(dir){var i=rnd(0,3);dd[i]=(dd[i]+dir+10)%10;drawDen();}
+function denRand(){dd=[rnd(0,9),rnd(0,9),rnd(0,9),rnd(0,9)];drawDen();}
+drawDen();
+
+/* ---------- stage 3: bit switches ---------- */
+var pv=[128,64,32,16,8,4,2,1], bits=[0,0,0,0,0,0,0,0];
+var bcol=document.getElementById('bitcols');
+pv.forEach(function(p,i){
+  var w=document.createElement('div');w.className='col';
+  w.innerHTML='<div class="pv">'+p+'</div>';
+  var b=document.createElement('button');b.className='cell';b.textContent='0';
+  b.setAttribute('aria-label','Bit worth '+p);
+  b.onclick=function(){bits[i]=bits[i]?0:1;drawBits();};
+  w.appendChild(b);bcol.appendChild(w);
+});
+function setBits(v){for(var i=0;i<8;i++)bits[i]=(v>>(7-i))&1;drawBits();}
+function drawBits(){
+  var v=0,on=[];
+  bits.forEach(function(b,i){if(b){v+=pv[i];on.push(pv[i]);}});
+  Array.prototype.forEach.call(bcol.children,function(c,i){
+    var btn=c.lastChild;btn.textContent=bits[i];btn.className='cell'+(bits[i]?' set':'');
+  });
+  document.getElementById('obin').textContent=group4(toBin(v));
+  document.getElementById('oden').textContent=v;
+  document.getElementById('ohex').textContent=toHex(v);
+  document.getElementById('bitwork').textContent=on.length?on.join(' + ')+' = '+v:'No bits are switched on, so the value is 0.';
+}
+drawBits();
+
+/* ---------- stage 4: denary to binary walkthrough ---------- */
+var d2bT=156, d2bStepN=0, d2bRem=156, d2bOut=[0,0,0,0,0,0,0,0];
+var dcols=document.getElementById('d2bcols');
+pv.forEach(function(p){
+  var w=document.createElement('div');w.className='col';
+  w.innerHTML='<div class="pv">'+p+'</div><div class="cell static">&middot;</div>';
+  dcols.appendChild(w);
+});
+function d2bDraw(){
+  Array.prototype.forEach.call(dcols.children,function(c,i){
+    var cell=c.lastChild;
+    if(i<d2bStepN){cell.textContent=d2bOut[i];cell.className='cell static'+(d2bOut[i]?' set':'');}
+    else{cell.textContent='\u00B7';cell.className='cell static';}
+  });
+  document.getElementById('d2b_target').textContent=d2bT;
+  document.getElementById('d2b_step').disabled=(d2bStepN>=8);
+}
+function d2bNew(){d2bT=rnd(20,250);d2bReset();}
+function d2bReset(){d2bStepN=0;d2bRem=d2bT;d2bOut=[0,0,0,0,0,0,0,0];d2bDraw();document.getElementById('d2bwork').textContent='Press "Next step" to work through it one column at a time.';}
+function d2bStep(){
+  if(d2bStepN>=8)return;
+  var p=pv[d2bStepN],msg;
+  if(d2bRem>=p){d2bOut[d2bStepN]=1;msg='Does '+p+' fit into '+d2bRem+'? Yes. Write 1 and subtract: '+d2bRem+' \u2212 '+p+' = '+(d2bRem-p)+'.';d2bRem-=p;}
+  else{d2bOut[d2bStepN]=0;msg='Does '+p+' fit into '+d2bRem+'? No. Write 0 and move on.';}
+  d2bStepN++;
+  if(d2bStepN===8)msg+='  Finished: '+d2bT+' = '+group4(d2bOut.join(''))+'.';
+  document.getElementById('d2bwork').textContent=msg;
+  d2bDraw();
+}
+d2bDraw();
+
+/* ---------- stage 6: nibble splitter ---------- */
+var nibV=182, npv=[8,4,2,1];
+function buildNib(hostId,offset){
+  var host=document.getElementById(hostId);
+  npv.forEach(function(p,j){
+    var i=offset+j;
+    var w=document.createElement('div');w.className='col';
+    w.innerHTML='<div class="pv">'+p+'</div>';
+    var b=document.createElement('button');b.className='cell';b.textContent='0';
+    b.setAttribute('aria-label','Bit worth '+p);
+    b.onclick=function(){nibV^=(1<<(7-i));drawNib();};
+    w.appendChild(b);host.appendChild(w);
+  });
+}
+buildNib('nibL',0);buildNib('nibR',4);
+function nibSum(nib){
+  var on=[],v=parseInt(nib,2);
+  npv.forEach(function(p,i){if(nib[i]==='1')on.push(p);});
+  return on.length?on.join(' + ')+' = '+v:'0';
+}
+function nibLine(nib){
+  var v=parseInt(nib,2),d=v.toString(16).toUpperCase();
+  return nib+'  \u2192  '+nibSum(nib)+'  \u2192  '+d+(v>9?'   ('+v+' is written as '+d+')':'');
+}
+function bitsFor(v){
+  var s=toBin(v,4),on=[];
+  npv.forEach(function(p,i){if(s[i]==='1')on.push(p);});
+  return {s:s,txt:on.length?on.join(' + ')+' = '+v:'nothing needed, so 0'};
+}
+function setNib(v){nibV=v;drawNib();}
+function drawNib(){
+  var s=toBin(nibV);
+  [['nibL',0],['nibR',4]].forEach(function(pr){
+    Array.prototype.forEach.call(document.getElementById(pr[0]).children,function(c,i){
+      var btn=c.lastChild,b=+s[pr[1]+i];btn.textContent=b;btn.className='cell'+(b?' set':'');
+    });
+  });
+  document.getElementById('nla').textContent=nibLine(s.slice(0,4));
+  document.getElementById('nra').textContent=nibLine(s.slice(4));
+  document.getElementById('nbin').textContent=group4(s);
+  document.getElementById('nhex').textContent=toHex(nibV);
+}
+drawNib();
+
+/* ---------- worked-example stepper ---------- */
+function stepper(mount,cfg){
+  var el=document.getElementById(mount),steps=[],shown=0;
+  el.innerHTML='<div class="panel">'+
+    '<div class="qrow" style="margin-bottom:2px">'+
+      '<span style="font-size:15px;color:var(--ink-2)">'+cfg.label+'</span>'+
+      '<span class="target" id="'+mount+'_t"></span>'+
+      '<button id="'+mount+'_s">Next step</button>'+
+      '<button id="'+mount+'_a">Show every step</button>'+
+      '<button id="'+mount+'_n">New example</button>'+
+    '</div><ol class="steps" id="'+mount+'_o"></ol></div>';
+  var out=document.getElementById(mount+'_o'),bs=document.getElementById(mount+'_s');
+  function draw(){
+    out.innerHTML='';
+    for(var i=0;i<shown;i++){
+      var li=document.createElement('li');li.innerHTML=steps[i];
+      if(i===steps.length-1)li.className='last';
+      out.appendChild(li);
+    }
+    bs.disabled=(shown>=steps.length);
+  }
+  function fresh(){var r=cfg.make();steps=r.steps;shown=0;document.getElementById(mount+'_t').textContent=r.target;draw();}
+  bs.onclick=function(){if(shown<steps.length){shown++;draw();}};
+  document.getElementById(mount+'_a').onclick=function(){shown=steps.length;draw();};
+  document.getElementById(mount+'_n').onclick=fresh;
+  fresh();
+}
+function hexWord(v){
+  var d=v.toString(16).toUpperCase();
+  return v>9?d+' (because '+v+' will not fit in one digit, so the letter '+d+' is used)':d;
+}
+
+stepper('w_b2h',{label:'Convert this byte to hexadecimal:',make:function(){
+  var v=rnd(16,255),s=toBin(v),hi=s.slice(0,4),lo=s.slice(4);
+  var hv=parseInt(hi,2),lv=parseInt(lo,2);
+  return {target:group4(s),steps:[
+    'Split the byte into two nibbles of four bits: <code>'+hi+'</code> and <code>'+lo+'</code>.',
+    'Each nibble has its own columns: 8, 4, 2, 1. The left nibble does not carry on from 128.',
+    'Left nibble <code>'+hi+'</code> gives '+nibSum(hi)+'.',
+    'So the first hexadecimal digit is <code class="h">'+hexWord(hv)+'</code>.',
+    'Right nibble <code>'+lo+'</code> gives '+nibSum(lo)+'.',
+    'So the second hexadecimal digit is <code class="h">'+hexWord(lv)+'</code>.',
+    'Join the digits in the same order: '+group4(s)+' = <code class="h">'+toHex(v)+'</code>'
+  ]};
+}});
+
+stepper('w_h2b',{label:'Convert this to 8-bit binary:',make:function(){
+  var v=rnd(16,255),h=toHex(v),hv=parseInt(h[0],16),lv=parseInt(h[1],16);
+  var a=bitsFor(hv),b=bitsFor(lv);
+  return {target:h,steps:[
+    'Take the two digits separately: <code class="h">'+h[0]+'</code> and <code class="h">'+h[1]+'</code>. Each one becomes exactly four bits.',
+    'The digit '+h[0]+' is worth '+hv+' in denary.',
+    'Write '+hv+' using the columns 8, 4, 2, 1: '+a.txt+', which is <code>'+a.s+'</code>.',
+    'The digit '+h[1]+' is worth '+lv+' in denary.',
+    'Write '+lv+' using the columns 8, 4, 2, 1: '+b.txt+', which is <code>'+b.s+'</code>.',
+    'Join the two nibbles: '+h+' = <code>'+a.s+' '+b.s+'</code>'
+  ]};
+}});
+
+stepper('w_d2h',{label:'Convert this denary number to hexadecimal:',make:function(){
+  var v=rnd(16,255),q=Math.floor(v/16),r=v%16,s=toBin(v);
+  return {target:String(v),steps:[
+    'Divide by 16: '+v+' \u00F7 16 = '+q+' remainder '+r+'. Sixteen goes into '+v+' a whole '+q+' times, with '+r+' left over.',
+    'The whole number part, '+q+', is the first digit: <code class="h">'+hexWord(q)+'</code>.',
+    'The remainder, '+r+', is the second digit: <code class="h">'+hexWord(r)+'</code>.',
+    'Put them together: '+v+' = <code class="h">'+toHex(v)+'</code>',
+    'Check using the other route: '+v+' in binary is <code>'+group4(s)+'</code>, and those two nibbles give '+q+' and '+r+', which is the same answer.'
+  ]};
+}});
+
+stepper('w_h2d',{label:'Convert this hexadecimal number to denary:',make:function(){
+  var v=rnd(16,255),h=toHex(v),hv=parseInt(h[0],16),lv=parseInt(h[1],16);
+  return {target:h,steps:[
+    'A two-digit hexadecimal number has two columns: the 16s column and the 1s column.',
+    'The left digit '+h[0]+' is worth '+hv+', and it sits in the 16s column.',
+    hv+' \u00D7 16 = <code class="d">'+(hv*16)+'</code>',
+    'The right digit '+h[1]+' is worth '+lv+', and it sits in the 1s column, so it stays as '+lv+'.',
+    'Add the columns: '+(hv*16)+' + '+lv+' = <code class="d">'+v+'</code>'
+  ]};
+}});
+
+/* ---------- stage 5: hex reference ---------- */
+var href=document.getElementById('hexref');
+for(var h=0;h<16;h++){
+  var c=document.createElement('div');c.className='hr-c';
+  c.innerHTML='<b>'+h.toString(16).toUpperCase()+'</b><span>'+h+'</span><span>'+toBin(h,4)+'</span>';
+  href.appendChild(c);
+}
+
+/* ---------- practice engine ---------- */
+function practice(mount,cfg){
+  var el=document.getElementById(mount);
+  var hits=0,ans='',hint='',work='';
+  el.innerHTML='<div class="qbox">'+
+    '<div class="qhead"><h3 style="margin:0">'+cfg.title+'</h3><span class="qtag">'+cfg.tag+'</span></div>'+
+    '<p class="qtext" id="'+mount+'_q"></p>'+
+    '<div class="qrow"><input type="text" id="'+mount+'_i" placeholder="'+cfg.ph+'" autocomplete="off" spellcheck="false">'+
+    '<button id="'+mount+'_c">Check</button><button id="'+mount+'_n">New question</button>'+
+    (cfg.hint?'<button id="'+mount+'_h">Show a hint</button>':'')+'</div>'+
+    '<p class="err" id="'+mount+'_e"></p><p class="fb" id="'+mount+'_f"></p>'+
+    '<div class="dots" id="'+mount+'_d"></div></div>';
+  var qi=document.getElementById(mount+'_i'),fb=document.getElementById(mount+'_f'),er=document.getElementById(mount+'_e');
+  var dots=document.getElementById(mount+'_d'),btnN=document.getElementById(mount+'_n');
+  function drawDots(){
+    dots.innerHTML='';
+    for(var i=0;i<cfg.need;i++){var d=document.createElement('div');d.className='dot'+(i<hits?' hit':'');dots.appendChild(d);}
+    var l=document.createElement('span');l.className='dotlbl';
+    l.textContent=hits>=cfg.need?'Target reached. Keep going if you want more practice.':hits+' of '+cfg.need+' correct';
+    dots.appendChild(l);
+  }
+  function fresh(){
+    var q=cfg.make();ans=q.a;hint=q.hint||'';work=q.work||'';
+    document.getElementById(mount+'_q').innerHTML=q.q;
+    qi.value='';fb.innerHTML='';fb.className='fb';fb.style.color='';er.textContent='';btnN.className='';
+  }
+  document.getElementById(mount+'_c').onclick=function(){
+    var g=qi.value.trim().replace(/\s+/g,'').toUpperCase();
+    if(!g){er.textContent='Type an answer first.';return;}
+    er.textContent='';
+    var target=String(ans).replace(/\s+/g,'').toUpperCase();
+    if(g===target||(cfg.numeric&&parseInt(g,10)===parseInt(target,10)&&/^\d+$/.test(g))){
+      fb.className='fb ok';
+      fb.innerHTML='Correct.'+(work?'<span class="wk">'+work+'</span>':'');
+      hits++;bump(true);drawDots();btnN.className='go';
+    } else {
+      fb.className='fb no';
+      fb.innerHTML=(cfg.wrong?cfg.wrong(g,target):('Not right. The answer is '+target+'.'))+
+        (work?'<span class="wk">'+work+'</span>':'');
+      bump(false);
+    }
+  };
+  btnN.onclick=fresh;
+  qi.oninput=function(){er.textContent='';};
+  qi.onkeydown=function(e){if(e.key==='Enter')document.getElementById(mount+'_c').click();};
+  if(cfg.hint)document.getElementById(mount+'_h').onclick=function(){fb.className='fb';fb.style.color='var(--ink-2)';fb.textContent=hint;};
+  fresh();drawDots();
+}
+
+var W_B2D=function(g,t){
+  if(/[^01]/.test(g)) return 'Not right. Your answer should be a denary number, made of the digits 0 to 9. The answer is '+t+'.';
+  return 'Not right. The answer is '+t+'. Check you started with 128 on the far left, not on the right.';
+};
+var W_D2B=function(g,t){
+  if(/[^01]/.test(g)) return 'Not right. A binary answer can only contain 1s and 0s. The answer is '+group4(t)+'.';
+  if(g.length!==8) return 'Not right. Give all 8 bits, including any leading zeros. The answer is '+group4(t)+'.';
+  return 'Not right. The answer is '+group4(t)+'. Work left to right and subtract each place value that fits.';
+};
+var W_HEX=function(g,t){
+  if(/[G-Z]/.test(g)) return 'Not right. Hexadecimal only uses 0 to 9 and A to F. The answer is '+t+'.';
+  return 'Not right. The answer is '+t+'. Split the binary into two nibbles of four bits and convert each one separately.';
+};
+
+function wkB2D(v){
+  var b=toBin(v),on=[];pv.forEach(function(p,i){if(b[i]==='1')on.push(p);});
+  return group4(b)+'\n= '+(on.length?on.join(' + '):'0')+'\n= '+v;
+}
+function wkD2B(v){
+  var rem=v,out='',lines=[];
+  pv.forEach(function(p){
+    if(rem>=p){lines.push(p+' fits into '+rem+'  \u2192 1, leaving '+(rem-p));rem-=p;out+='1';}
+    else{lines.push(p+' does not fit into '+rem+'  \u2192 0');out+='0';}
+  });
+  return v+'\n'+lines.join('\n')+'\nanswer '+group4(out);
+}
+function wkB2H(v){
+  var b=toBin(v),hi=b.slice(0,4),lo=b.slice(4);
+  var hv=parseInt(hi,2),lv=parseInt(lo,2);
+  return group4(b)+'\nleft  '+hi+' = '+nibSum(hi)+' \u2192 '+hv.toString(16).toUpperCase()+
+         '\nright '+lo+' = '+nibSum(lo)+' \u2192 '+lv.toString(16).toUpperCase()+
+         '\nanswer '+toHex(v);
+}
+function wkH2B(v){
+  var h=toHex(v),a=bitsFor(parseInt(h[0],16)),b=bitsFor(parseInt(h[1],16));
+  return h+'\n'+h[0]+' = '+parseInt(h[0],16)+' = '+a.s+'\n'+h[1]+' = '+parseInt(h[1],16)+' = '+b.s+
+         '\nanswer '+a.s+' '+b.s;
+}
+function wkD2H(v){
+  var q=Math.floor(v/16),r=v%16;
+  return v+' \u00F7 16 = '+q+' remainder '+r+'\n'+q+' \u2192 '+q.toString(16).toUpperCase()+
+         '   and   '+r+' \u2192 '+r.toString(16).toUpperCase()+'\nanswer '+toHex(v);
+}
+function wkH2D(v){
+  var h=toHex(v),hv=parseInt(h[0],16),lv=parseInt(h[1],16);
+  return h+'\n'+h[0]+' = '+hv+' in the 16s column: '+hv+' \u00D7 16 = '+(hv*16)+
+         '\n'+h[1]+' = '+lv+' in the 1s column: '+lv+
+         '\n'+(hv*16)+' + '+lv+' = '+v;
+}
+
+practice('p_b2d',{title:'Practice: binary to denary',tag:'aim for 4',need:4,ph:'e.g. 172',numeric:true,hint:true,wrong:W_B2D,
+  make:function(){var v=rnd(5,255);return{
+    q:'Convert the binary number <b>'+group4(toBin(v))+'</b> into denary.',
+    a:String(v),
+    hint:'Add the place values above every 1: 128, 64, 32, 16, 8, 4, 2, 1.',
+    work:wkB2D(v)};}});
+
+practice('p_d2b',{title:'Practice: denary to binary',tag:'aim for 4',need:4,ph:'e.g. 10101100',hint:true,wrong:W_D2B,
+  make:function(){var v=rnd(5,255);return{
+    q:'Convert the denary number <b>'+v+'</b> into 8-bit binary.',
+    a:toBin(v),
+    hint:'Start at 128. Does it fit into '+v+'? If it does, write 1 and subtract it.',
+    work:wkD2B(v)};}});
+
+practice('p_hexref',{title:'Practice: hexadecimal digits',tag:'aim for 5',need:5,ph:'e.g. B',hint:true,
+  make:function(){var v=rnd(0,15),mode=rnd(0,1);
+    if(mode) return{
+      q:'Which hexadecimal digit represents the denary value <b>'+v+'</b>?',
+      a:v.toString(16).toUpperCase(),
+      hint:'After 9 comes A. A is 10, B is 11, and so on up to F which is 15.',
+      work:v+' \u2192 '+v.toString(16).toUpperCase()+(v>9?'   (the letters start at A = 10)':'   (values up to 9 stay as digits)')};
+    return{
+      q:'Which nibble does the hexadecimal digit <b>'+v.toString(16).toUpperCase()+'</b> represent? Give 4 bits.',
+      a:toBin(v,4),
+      hint:'The digit is worth '+v+'. Use the columns 8, 4, 2, 1.',
+      work:v.toString(16).toUpperCase()+' = '+v+'\n'+bitsFor(v).txt+'\nanswer '+toBin(v,4)};}});
+
+practice('p_b2h',{title:'Practice: binary to hexadecimal',tag:'aim for 4',need:4,ph:'e.g. 9F',hint:true,wrong:W_HEX,
+  make:function(){var v=rnd(16,255);return{
+    q:'Convert the binary number <b>'+group4(toBin(v))+'</b> into hexadecimal.',
+    a:toHex(v),
+    hint:'Left nibble first, then the right. Each nibble uses the columns 8, 4, 2, 1.',
+    work:wkB2H(v)};}});
+
+practice('p_h2b',{title:'Practice: hexadecimal to binary',tag:'aim for 4',need:4,ph:'e.g. 10011111',hint:true,wrong:W_D2B,
+  make:function(){var v=rnd(16,255);return{
+    q:'Convert the hexadecimal number <b>'+toHex(v)+'</b> into 8-bit binary.',
+    a:toBin(v),
+    hint:'Turn each hexadecimal digit into four bits, then write them side by side.',
+    work:wkH2B(v)};}});
+
+practice('p_d2h',{title:'Practice: denary to hexadecimal',tag:'aim for 3',need:3,ph:'e.g. C4',hint:true,wrong:W_HEX,
+  make:function(){var v=rnd(16,255);return{
+    q:'Convert the denary number <b>'+v+'</b> into hexadecimal.',
+    a:toHex(v),
+    hint:'Divide by 16. The whole number is the first digit, the remainder is the second.',
+    work:wkD2H(v)};}});
+
+practice('p_h2d',{title:'Practice: hexadecimal to denary',tag:'aim for 3',need:3,ph:'e.g. 196',numeric:true,hint:true,
+  make:function(){var v=rnd(16,255);return{
+    q:'Convert the hexadecimal number <b>'+toHex(v)+'</b> into denary.',
+    a:String(v),
+    hint:'Multiply the first digit by 16, then add the second digit.',
+    work:wkH2D(v)};}});
+
+/* ---------- stage 8: length comparison ---------- */
+function cmpDraw(){
+  var n=+document.getElementById('bitlen').value;
+  document.getElementById('bitlenv').textContent=n;
+  var s='';for(var i=0;i<n;i++)s+=(Math.random()<0.5?'0':'1');
+  cmpCache[n]=cmpCache[n]||s;s=cmpCache[n];
+  var hx='';for(var j=0;j<n;j+=4)hx+=parseInt(s.substr(j,4),2).toString(16).toUpperCase();
+  document.getElementById('cmpbin').textContent='binary   '+s;
+  document.getElementById('cmphex').textContent='hex      '+hx;
+  document.getElementById('cmpwork').textContent=n+' bits needs '+n+' characters in binary, but only '+(n/4)+' characters in hexadecimal. That is a quarter of the length.';
+}
+var cmpCache={};
+document.getElementById('bitlen').oninput=cmpDraw;
+cmpDraw();
+
+/* ---------- stage 8: spot the difference ---------- */
+(function(){
+  var box=document.getElementById('spotbox');
+  var v1=rnd(1100000000,2100000000), v2=v1^(1<<rnd(0,15));
+  var b1=toBin(v1,32),b2=toBin(v2,32);
+  var h1=toHex(v1,8),h2=toHex(v2,8);
+  box.innerHTML=
+    '<h4 style="margin:0 0 6px;font-size:15px">In binary</h4>'+
+    '<div class="strcmp">'+group4(b1)+'</div><div class="strcmp">'+group4(b2)+'</div>'+
+    '<div class="qrow"><button id="sp_same">They are the same</button><button id="sp_diff">They are different</button></div>'+
+    '<p class="fb" id="sp_fb"></p>'+
+    '<div id="sp_hexpart" class="hide"><h4 style="margin:18px 0 6px;font-size:15px">Now the same two values in hexadecimal</h4>'+
+    '<div class="strcmp">'+h1+'</div><div class="strcmp">'+h2+'</div>'+
+    '<p class="fb" id="sp_fb2"></p></div>';
+  function reveal(ok){
+    var f=document.getElementById('sp_fb');
+    f.className='fb '+(ok?'ok':'no');
+    f.textContent=ok?'Correct, they are different. How long did that take, and how confident were you?':'They are actually different. One single bit has changed, and it is very easy to miss.';
+    document.getElementById('sp_hexpart').classList.remove('hide');
+    document.getElementById('sp_fb2').className='fb';
+    document.getElementById('sp_fb2').style.color='var(--ink-2)';
+    document.getElementById('sp_fb2').textContent='The difference is obvious now. Same information, same bits underneath, but a person can check it in a second. This is exactly why engineers write bit patterns in hexadecimal.';
+    document.getElementById('sp_same').disabled=true;
+    document.getElementById('sp_diff').disabled=true;
+  }
+  document.getElementById('sp_same').onclick=function(){reveal(false);};
+  document.getElementById('sp_diff').onclick=function(){reveal(true);};
+})();
+
+/* ---------- colour picker ---------- */
+function colDraw(){
+  var r=+document.getElementById('cr').value,g=+document.getElementById('cg').value,b=+document.getElementById('cb').value;
+  document.getElementById('crv').textContent=r+' = '+toHex(r);
+  document.getElementById('cgv').textContent=g+' = '+toHex(g);
+  document.getElementById('cbv').textContent=b+' = '+toHex(b);
+  var hx='#'+toHex(r)+toHex(g)+toHex(b);
+  document.getElementById('swatch').style.background=hx;
+  document.getElementById('colhex').textContent=hx;
+  document.getElementById('colwork').textContent='In binary that colour is '+toBin(r)+' '+toBin(g)+' '+toBin(b)+' \u2014 24 characters. In hexadecimal it is 6.';
+}
+['cr','cg','cb'].forEach(function(id){document.getElementById(id).oninput=colDraw;});
+colDraw();
+
+/* ---------- multiple choice engine ---------- */
+function mcq(mount,items){
+  var el=document.getElementById(mount),html='';
+  items.forEach(function(it,qn){
+    html+='<div class="qbox"><div class="qhead"><h3 style="margin:0">Question '+(qn+1)+'</h3><span class="qtag">'+(it.marks||1)+' mark'+((it.marks||1)>1?'s':'')+'</span></div>'+
+      '<p class="qtext">'+it.q+'</p><div class="mcq" id="'+mount+'_'+qn+'"></div><p class="fb" id="'+mount+'_'+qn+'_f"></p></div>';
+  });
+  el.innerHTML=html;
+  items.forEach(function(it,qn){
+    var w=document.getElementById(mount+'_'+qn),fb=document.getElementById(mount+'_'+qn+'_f'),done=false;
+    it.opts.forEach(function(o){
+      var b=document.createElement('button');b.textContent=o.t;
+      b.onclick=function(){
+        if(done)return;done=true;
+        fb.className='fb '+(o.c?'ok':'no');fb.textContent=o.f;
+        b.className=o.c?'picked-ok':'picked-no';
+        if(!o.c){Array.prototype.forEach.call(w.children,function(x,xi){if(it.opts[xi].c)x.className='picked-ok';});}
+        bump(!!o.c);
+      };
+      w.appendChild(b);
+    });
+  });
+}
+
+mcq('p_uses',[
+  {q:'Which of these is <b>not</b> a reason that hexadecimal is used in computer science?',marks:1,opts:[
+    {t:'It lets the computer store more data in the same memory',c:1,f:'Correct. Hexadecimal changes nothing about storage. The computer still holds the identical bit pattern. Hexadecimal is only a way of writing that pattern down for people.'},
+    {t:'It is shorter to write than binary',c:0,f:'This is a genuine reason. Hexadecimal is a quarter of the length of the equivalent binary.'},
+    {t:'People make fewer transcription errors with it',c:0,f:'This is a genuine reason. Fewer characters means fewer chances to slip.'},
+    {t:'It converts to and from binary very easily',c:0,f:'This is a genuine reason. Each digit maps onto exactly one nibble.'}
+  ]},
+  {q:'A programmer is reading a memory dump. Why is it shown in hexadecimal rather than binary?',marks:2,opts:[
+    {t:'Because hexadecimal is shorter, so more of the memory fits on screen and it is easier to check by eye',c:1,f:'Correct. That is the answer the mark scheme wants: shorter to display, easier and quicker for a person to read and check.'},
+    {t:'Because the processor works in hexadecimal',c:0,f:'No. The processor works entirely in binary. Hexadecimal exists only at the point where a person reads the data.'},
+    {t:'Because hexadecimal takes up less memory',c:0,f:'No. The bytes in memory are unchanged. Only the way they are displayed has changed.'},
+    {t:'Because denary cannot represent large numbers',c:0,f:'No. Denary can represent any number. The problem is that denary does not line up neatly with the underlying bits.'}
+  ]}
+]);
+
+mcq('p_why',[
+  {q:'Complete the statement: hexadecimal is easier for humans to understand than binary because it is a &hellip;',marks:1,opts:[
+    {t:'shorter representation of binary',c:1,f:'Correct. This is the syllabus wording, so use it: hexadecimal is a shorter representation of binary.'},
+    {t:'faster representation of binary',c:0,f:'Not quite. Speed is not the issue. The word the syllabus uses is shorter.'},
+    {t:'more accurate representation of binary',c:0,f:'Not quite. Both represent exactly the same value, so neither is more accurate. The word is shorter.'},
+    {t:'smaller representation of binary',c:0,f:'Close, but the word the syllabus uses is shorter, meaning fewer characters to write.'}
+  ]},
+  {q:'How many binary digits does one hexadecimal digit represent?',marks:1,opts:[
+    {t:'4',c:1,f:'Correct. One hexadecimal digit is one nibble, because 4 bits give 16 possible values and hexadecimal has 16 digits.'},
+    {t:'2',c:0,f:'No. Two bits would only give four possible values, so it would need base 4, not base 16.'},
+    {t:'8',c:0,f:'No, 8 bits is a whole byte, which needs two hexadecimal digits.'},
+    {t:'16',c:0,f:'No. 16 is the base, not the number of bits. Each digit stands for 4 bits.'}
+  ]}
+]);
+
+mcq('p_final',[
+  {q:'What is the denary value of the binary number <b>0011 1000</b>?',marks:1,opts:[
+    {t:'56',c:1,f:'Correct. 32 + 16 + 8 = 56.'},
+    {t:'28',c:0,f:'You have read the place values from the wrong end. The leftmost column is worth 128, not 1.'},
+    {t:'38',c:0,f:'That is the hexadecimal value. 0011 is 3 and 1000 is 8, giving hex 38. Its denary value is 56.'},
+    {t:'14',c:0,f:'You have counted the columns rather than adding their place values. Add 32, 16 and 8.'}
+  ]},
+  {q:'What is the denary number <b>202</b> in 8-bit binary?',marks:1,opts:[
+    {t:'1100 1010',c:1,f:'Correct. 128 + 64 + 8 + 2 = 202.'},
+    {t:'1010 0110',c:0,f:'That is 166. Check each subtraction as you work from 128 downwards.'},
+    {t:'0101 0011',c:0,f:'That is your answer written backwards. Keep the 128 column on the left.'},
+    {t:'1100 1011',c:0,f:'Very close, but that is 203. Check the final column.'}
+  ]},
+  {q:'What is the hexadecimal value of the binary number <b>1011 0111</b>?',marks:1,opts:[
+    {t:'B7',c:1,f:'Correct. 1011 is 11 which is B, and 0111 is 7.'},
+    {t:'7B',c:0,f:'You have the right two digits but in the wrong order. The left nibble comes first.'},
+    {t:'A7',c:0,f:'1011 is 11, which is B. A is 10, which would be 1010.'},
+    {t:'183',c:0,f:'That is the denary value. The question asked for hexadecimal, which is B7.'}
+  ]},
+  {q:'What is the hexadecimal number <b>4E</b> in denary?',marks:2,opts:[
+    {t:'78',c:1,f:'Correct. (4 \u00D7 16) + 14 = 64 + 14 = 78.'},
+    {t:'54',c:0,f:'You have added 4 and 14 with the wrong place value. The first digit must be multiplied by 16.'},
+    {t:'414',c:0,f:'You have written the two digits next to each other. E is worth 14, but the 4 is worth 4 \u00D7 16.'},
+    {t:'68',c:0,f:'Check the value of E. E is 14, not 4. (4 \u00D7 16) + 14 = 78.'}
+  ]},
+  {q:'A technician needs to write down a 48-bit MAC address. Give the best reason for using hexadecimal rather than binary.',marks:2,opts:[
+    {t:'It needs only 12 characters instead of 48, so it is quicker to write and less likely to contain a mistake',c:1,f:'Correct, and note that a full-mark answer gives both parts: it is shorter, and being shorter makes errors less likely.'},
+    {t:'Hexadecimal addresses are unique but binary ones are not',c:0,f:'No. The address is the same 48 bits either way. Only the way it is written changes.'},
+    {t:'Network cards can only read hexadecimal',c:0,f:'No. The card works in binary. Hexadecimal is for the person reading the address.'},
+    {t:'Hexadecimal takes up less space in the network card',c:0,f:'No. The stored data is identical. Only the written form is shorter.'}
+  ]}
+]);
+
+/* ---------- completion code ---------- */
+function updateCode(){
+  var n=(document.getElementById('uname').value||'').trim();
+  var box=document.getElementById('codeout'),msg=document.getElementById('codemsg');
+  if(attempted<8){msg.textContent='Answer the questions above to generate your code.';box.classList.add('hide');return;}
+  if(!n){msg.textContent='Go back to stage 1 and type your name to generate your code.';box.classList.add('hide');return;}
+  var h=0;
+  for(var i=0;i<n.length;i++)h=(h*31+n.toUpperCase().charCodeAt(i))&0xFFF;
+  var code=toHex(h,3)+'-'+toHex(score,2)+'-'+toHex(attempted&0xFF,2);
+  msg.textContent='Score: '+score+' correct from '+attempted+' attempts.';
+  box.textContent=code;box.classList.remove('hide');
+}
+document.getElementById('uname').oninput=updateCode;
+</script>
+</body>
+</html>
